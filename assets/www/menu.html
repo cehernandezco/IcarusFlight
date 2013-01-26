@@ -1,0 +1,92 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="">
+<!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icarus Flight</title>
+<link href="boilerplate.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="jquery.mobile-1.0rc2.min.css" />
+
+<script type="text/javascript" src="js/cordova-2.1.0.js"></script>
+
+<script	src="js/jquery.min.js"></script>
+<script src="js/jquery.mobile-1.1.1.min.js"></script>
+
+<link href="css/cuadricula.css" rel="stylesheet" type="text/css">
+
+<!-- 
+Para obtener más información sobre los comentarios condicionales situados alrededor de las etiquetas html en la parte superior del archivo:
+paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/
+  
+Haga lo siguiente si usa su compilación personalizada de modernizr (http://www.modernizr.com/):
+* inserte el vínculo del código js aquí
+* elimine el vínculo situado debajo para html5shiv
+* añada la clase "no-js" a las etiquetas html en la parte superior
+* también puede eliminar el vínculo con respond.min.js si ha incluido MQ Polyfill en su compilación de modernizr 
+-->
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<script src="respond.min.js"></script>
+</head>
+<body>
+<div class="gridContainer clearfix">
+  <div id="header" data-role="header" align="center">Icarus Flight</div>
+  <div id="contentmen">
+    <div id="allmenu">
+    <br/>
+      <div id="divlogo"><img src="images/logo_seico.png" alt="Seico Technology"></div>
+      <div id="menu" data-title="Main Menu" align="center">
+        <p>Main Menu
+          <br>
+        </p>
+        
+        <div id="mainmenubt">
+          
+          <div id="titledata" align="left">Data</div>
+			<ul data-role="listview">
+				<li><a href="#"><img class="ui-li-icon" src="images/addflight_24.png">     New Flights</a></li>
+				<li><a href="#pgLocalization"><img class="ui-li-icon" src="images/flightlist_24.png">  Overview Flights</a></li>
+				
+			</ul>
+		
+          
+        </div>
+        <div id="Reports"><div id="titledata" align="left">Reports</div>
+			<ul data-role="listview">
+				<li><a href="#"><img class="ui-li-icon" src="images/addflight_24.png">LogStats</a></li>
+				<li><a href="#pgLocalization"><img class="ui-li-icon" src="images/flightlist_24.png">  Overview Flights</a></li>
+				
+			</ul>
+		</div>
+
+<div id="Resources"><div id="titledata" align="left">Resources</div>
+			<ul data-role="listview">
+				<li><a href="#"><img class="ui-li-icon" src="images/addflight_24.png">Time Calculator</a></li>
+				<li><a href="#pgLocalization"><img class="ui-li-icon" src="images/flightlist_24.png">  Weather</a></li>
+                <li><a href="#pgLocalization"><img class="ui-li-icon" src="images/flightlist_24.png">Sky View</a></li>
+				
+			</ul>
+		</div>
+<div id="settings"> <div id="titlesettings" align="left">Other</div>
+          <ul data-role="listview">
+				<li><a href="#"><img class="ui-li-icon" src="images/addflight_24.png">    Settings</a></li>
+				<li><a href="#pgLocalization"><img class="ui-li-icon" src="images/flightlist_24.png">  My Account</a></li>
+				
+			</ul></div>
+       
+      </div>
+      
+      
+     
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

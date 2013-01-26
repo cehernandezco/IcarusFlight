@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title></title>
+<link rel="stylesheet"
+	href="css/Icarus.css" />
+<link rel="stylesheet" href="css/my.css" />
+<style>
+/* App custom styles */
+</style>
+<script type="text/javascript" src="js/cordova-2.1.0.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"/></script>
+<script	src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="https://ajax.aspnetcdn.com/ajax/jquery.mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
+<script src="my.js"></script>
+
+ <script type="text/javascript">
+//add listener when device ready
+	document.addEventListener("deviceready", onDeviceReady, false);
+	var db = window.openDatabase("Soccer", "1.0", "Just a Dummy DB", 200000); //will create database Dummy_DB or open it
+
+	//function will be called when device ready
+	function onDeviceReady(){
+        db.transaction(populateDB, errorCB, successCB);
+	}
+	
+
+
+	//create table and insert some record
+	
+	function populateDB(tx) {
+        tx.executeSql('CREATE TABLE IF NOT EXISTS SoccerPlayer (id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Club TEXT NOT NULL)');
+        
+    }
+	//create table and insert some record
+	function saveDB(tx) {
+		/*tx.executeSql('DROP TABLE SoccerPlayer');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS SoccerPlayer (id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Club TEXT NOT NULL)');*/
+     // tx.executeSql('INSERT INTO SoccerPlayer(Name,Club) VALUES (' $("#nombre").value + ',' + $("#apellido").value + ')');
+        var name = document.getElementById("nombre").value;
+        var query = 'INSERT INTO SoccerPlayer(Name,Club) VALUES ("'+ name +'","AC Milan")';
+        alert(query);
+        tx.executeSql(query);
+       
+       // tx.executeSql('INSERT INTO SoccerPlayer(Name,Club) VALUES ("Van Persie", "Arsenal")');
+    }
+
+	//function will be called when an error occurred
+	function errorCB(err) {
+        alert("Error processing SQL: "+err.code);
+	}
+
+	//function will be called when process succeed
+	function successCB() {
+        alert("success!");
+        db.transaction(queryDB,errorCB);
+    }
+
+	//select all from SoccerPlayer
+	function queryDB(tx){
+		tx.executeSql('SELECT * FROM SoccerPlayer',[],querySuccess,errorCB);
+	}
+
+	function querySuccess(tx,result){
+		$('#SoccerPlayerList').empty();
+		$.each(result.rows,function(index){
+			var row = result.rows.item(index);
+			$('#SoccerPlayerList').append('<li><a href="#"><h3 class="ui-li-heading">'+row['Name']+'</h3><p class="ui-li-desc">Club '+row['Club']+'</p></a></li>');
+		});
+
+		$('#SoccerPlayerList').listview();
+	}
+	hola = function()
+	{
+		
+		 db.transaction(saveDB, errorCB, successCB);
+	}
+
+	</script></head>
+<body >
+	<!-- Home -->
+	<div data-role="page" id="page1">
+		<div data-theme="a" data-role="header" data-position="fixed">
+			<h2>Icarus Flight</h2>
+
+			<a data-role="button" data-inline="true" href="#page1"
+				data-icon="gear" data-iconpos="top" class="ui-btn-right"> </a>
+		</div>
+		<div data-role="content">
+			<a href="#www.seicotechnology.com">
+				<div style="display: inline">
+					<img
+						src="http://www.seicotechnology.com/images/LOGO_SEICO_COLOR.png" width="151" height="72" />
+				</div>
+			</a>
+			<div class="ui-grid-b">
+				<div class="ui-block-a"></div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c"></div>
+				<div class="ui-block-a">
+					<a href="#flightstats">New Flight</a>
+				</div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c"></div>
+				<div class="ui-block-a">Overview Flights</div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c">Sync to Server</div>
+				<div class="ui-block-a"></div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c">Check for new version</div>
+			</div>
+
+
+		</div>
+	</div>
+	<!-- Start of second page -->
+	<!-- Home -->
+	<div data-role="page" id="flightstats">
+		<div data-theme="a" data-role="header" data-position="fixed">
+			<h2>Icarus Flight</h2>
+			<a data-role="button" href="#page1" data-icon="home"
+				data-iconpos="top" class="ui-btn-left"> </a> <a data-role="button"
+				data-inline="true" href="#page1" data-icon="gear" data-iconpos="top"
+				class="ui-btn-right"> </a>
+
+		</div>
+		<div data-role="content">
+			
+					<h3>Flight Stats</h3>
+					<form action="">
+                    <div class="ui-grid-d">
+				<div class="ui-block-a">
+				  <label for="date"> Date:    </label>
+				  <input
+										name="TFdate3" id="TFdate4" placeholder="dd/mm/yyyy" width="80%" value="" 
+										type="date" data-inline="true" /></div>
+				
+				<div class="ui-block-b"><label for="Flightid"> Flight ID: </label>
+				  <input name="TFflight" id="TFflight" width="50"
+										placeholder="Flight sheet no." value="" type="text" />
+				</div>
+                <div class="ui-block-c"><label for="selectaircraft">
+											Aircraft: </label> <select name="">
+											<option value="option1">HK-4784</option></select></div>
+                                            
+                <div class="ui-block-d"></div>
+				<div class="ui-block-a">
+				  <label for="selectclient"> Client: </label><select style="width: 60"  >
+				  <option value="option1">Client 1</option>
+								<option value="option2">Client 2</option>
+							</select></div>
+				<div class="ui-block-b"><label for="selectbase"> Base: </label> <select>
+								<option value="option1">Base 1</option>
+							</select></div>
+				<div class="ui-block-c"><label for="selecttypefl">  Flight Type: </label> <select name="">
+								<option value="option1">Type 1</option>
+							</select></div>
+                <div class="ui-block-d"></div>
+                </div>
+                <label for="lblcrew">
+                <h3>Crew</h3></label>
+                <div class="grid-ui-a">
+                	<div class="ui-block-a"><label for="selectpil"> Pilot: </label><select style="width: 60"  >
+				  <option value="Pilot1">Pilot 1</option>
+								<option value="Pilot2">Pilot 2</option>
+							</select></div>
+							
+                 <div class="grid-ui-b"></div>
+				<div class="ui-block-a"><label for="selectcop"> CoPilot: </label><select style="width: 60"  >
+				  <option value="CoPilot1">CoPilot 1</option>
+								<option value="CoPilot2">CoPilot 2</option>
+							</select></div>
+				<div class="grid-ui-b"></div>
+				</div>
+			
+                
+						<div data-role="fieldcontain">
+							<table width="99%" border="0">
+								<tr><td align="right" colspan="4">
+								<a data-role="button"
+										data-inline="true" href="#page1"> New</a> <a
+										data-role="button" data-inline="true" href="#page1">
+											Cancel</a>
+								</td></tr>
+								<tr>
+									<td width="30%">
+									</td>
+									<td width="10%" align="right">
+									
+									
+									
+									</td>
+									<td width="20%" >&nbsp;</td>
+									<td width="40%" align="right">&nbsp;</td>
+								</tr>
+								<tr>
+									<td>&nbsp;</td>
+									<td align="right"></td>
+									<td>&nbsp;</td>
+									<td>&nbsp;</td>
+									
+								</tr>
+								<tr>
+									<td colspan="2" >
+									
+							
+						</td>
+									<td colspan="1">
+							
+						</td>
+									<td colspan="1">
+							
+						</td>
+									
+									
+								</tr>
+								
+							</table>
+							<table width="100%" >
+							<tr bgcolor="#C0C0C0">
+							  <td colspan="2" align="center">&nbsp;</td>
+							  <td colspan="3" align="center">&nbsp;</td>
+							  <td colspan="3" align="center"><input type="submit" name="btnNew" id="btnNew" value="Agregar Vuelo"></td>
+							  <td colspan="2" align="center">
+						      <input type="submit" name="btnDelete" id="btnDelete" value="Eliminar Vuelo"></td>
+							  </tr>
+							<tr bgcolor="#C0C0C0">
+							<td colspan="2" align="center">Journey</td>
+							<td colspan="3" align="center">Platform Time</td>
+							<td colspan="3" align="center">Flight Time</td>
+							
+							<td colspan="2" align="center">Passengers/Load</td>
+							</tr>
+							<tr bgcolor="#C0C0C0">
+							<td  align="center">From</td>
+							<td  align="center">To</td>
+							<td align="center">Departure</td>
+							<td  align="center">Arrive</td>
+							<td  align="center"><p>Block Time</p></td>
+							<td  align="center">Departure</td>
+							<td  align="center">Arrive</td>
+                            
+							<td align="center">Flight Time</td>
+							
+							<td align="center">Pax</td>
+							<td align="center">Load</td>
+							
+							</tr>
+							<tr>
+							<td align="center"><select name=""   >
+								<option value="option1">Client 1</option>
+								<option value="option2">Client 2</option>
+							</select></td>
+							<td align="center"><select name=""   >
+								<option value="option1">Client 1</option>
+								<option value="option2">Client 2</option>
+							</select></td>
+							<td align="center"><input
+										name="" id="TFdate" placeholder="00:00" value="" 
+										type="time" data-inline="true" /></td>
+							<td align="center"><input
+										name="" id="TFdate" placeholder="00:00"  value="" 
+										type="time"></td>
+							<td align="center"><input
+										name="" id="TFdate" placeholder="00:00"  value="" 
+										type="time"   /></td>
+							<td align="center"><input
+										name="" id="TFdate" placeholder="00:00" value="" 
+										type="time" data-inline="true" /></td>
+							<td align="center"><input type="text" name="TFflightime" id="TFflightime" width ="50"></td>
+							<td align="center"><input
+										name="" id="TFdate" placeholder="00:00" width="50" value="" 
+										type="time"  /></td>
+							<td align="center"><input
+										name="TFdate" id="TFdate2" placeholder="0" width="50" value="" 
+										type="number" data-inline="true" /></td>
+							<td align="center"><input
+										name="TFdate2" id="TFdate3" placeholder="0" width="50" value="" 
+										type="number" /></td>
+							<td align="center">&nbsp;</td>
+							
+							</tr>
+							
+							
+							</table>
+							<table width="100%"  >
+							<tr><td colspan="8">
+							Observaciones: <br>
+							<textarea style="width:100%" name="txtAnotaciones"   id="txtAnotaciones" ></textarea><br/></td></tr>
+							
+						  </table>
+
+						</div>
+						
+						<div data-role="content">
+							<table>
+								<tr>
+									<td></td>
+								</tr>
+							</table>
+
+
+						</div>
+						
+					</form>
+			
+			
+					
+                    <form id="form" name="form">
+Nombre
+<input type="text" id="nombre" name="nombre">
+
+Apellido
+<input type="text" id="apellido" name="apellido">
+
+<input type="button" id="boton" value="hola" name="boton" onclick="hola()">
+</form>
+
+			
+			<ul id="SoccerPlayerList">
+		   </ul>
+		</div>
+		
+	</div>
+	<!-- /page -->
+
+	<script>
+		//App custom javascript
+	</script>
+</body>
+</html>

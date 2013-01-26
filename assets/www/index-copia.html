@@ -1,0 +1,550 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title></title>
+<link rel="stylesheet" href="css/Icarus.css" />
+<link rel="stylesheet" href="css/my.css" />
+<link rel="stylesheet" href="jquery.mobile-1.0rc2.min.css" />
+
+<script type="text/javascript" src="js/cordova-2.1.0.js"></script>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/jquery.mobile-1.1.1.min.js"></script>
+
+<script type="text/javascript">
+	//add listener when device ready
+	document.addEventListener("deviceready", onDeviceReady, false);
+	//Es el último vuelo ingresado
+	var maximo;
+	var db = window.openDatabase("DB", "1.0", "Just a Dummy DB", 200000); //will create database Dummy_DB or open it
+
+	//function will be called when device ready
+	function onDeviceReady() {
+		 var element = document.getElementById('deviceProperties');
+
+        element.innerHTML = 'Device Name: '     + device.name     + '<br />' + 
+                            'Device PhoneGap: ' + device.phonegap + '<br />' + 
+                            'Device Platform: ' + device.platform + '<br />' + 
+                            'Device UUID: '     + device.uuid     + '<br />' + 
+                            'Device Version: '  + device.version  + '<br />';
+		db.transaction(populateDB, errorCB, null);
+	}
+
+	//create table and insert some record
+	function populateDB(tx) {
+		/*tx.executeSql('DROP TABLE IF EXISTS encabezado');
+		tx.executeSql('DROP TABLE IF EXISTS vuelo');*/
+		tx
+				.executeSql('CREATE TABLE IF NOT EXISTS encabezado (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha date, flight int, aircraft varchar(20), client varchar(30), base varchar(30), type varchar(30), pilot varchar(30), copilot varchar(30))');
+		tx
+				.executeSql('CREATE TABLE IF NOT EXISTS vuelo (id INTEGER PRIMARY KEY AUTOINCREMENT, idforeign INTEGER, fromv varchar(30), tov varchar(30), pdeparture varchar(30), parrive varchar(30), fdeparture varchar(30), farrive varchar(30), pax INTEGER, load INTEGER, observaciones text, foreign key(idforeign) references encabezado(id))');
+
+	}
+	//create table and insert some record
+	function saveEncabezado(tx) {
+
+		var fecha = document.getElementById("TFdate4").value;
+		var flight = document.getElementById("TFflight").value;
+		var aircraft = document.getElementById("aircraft").value;
+		var cliente = document.getElementById("client").value;
+		var base = document.getElementById("base").value;
+		var tipo = document.getElementById("type").value;
+		var piloto = document.getElementById("pilot").value;
+		var copiloto = document.getElementById("copilot").value;
+		if (fecha == "") {
+			alert("Choose the date, please");
+		} else if (flight == "") {
+			alert("Choose the flight, please");
+		} else if (aircraft == "") {
+			alert("Choose the aircraft, please");
+		} else if (cliente == "") {
+			alert("Choose the client, please");
+		} else if (base == "") {
+			alert("Choose the base, please");
+		} else if (tipo == "") {
+			alert("Choose the flight type, please");
+		} else if (piloto == "") {
+			alert("Choose the pilot, please");
+		} else if (copiloto == "") {
+			alert("Choose the copilot, please");
+		} else {
+
+			var query = 'INSERT INTO encabezado(fecha,flight,aircraft,client,base,type,pilot,copilot) VALUES ("'
+					+ fecha
+					+ '","'
+					+ flight
+					+ '","'
+					+ aircraft
+					+ '","'
+					+ cliente
+					+ '","'
+					+ base
+					+ '","'
+					+ tipo
+					+ '","'
+					+ piloto
+					+ '","' + copiloto + '")';
+
+			alert(query);
+			tx.executeSql(query);
+
+		}
+
+	}
+
+	//function will be called when an error occurred
+	function errorCB(err) {
+		alert("Error processing SQL: " + err.code);
+	}
+
+	//function will be called when process succeed
+	function successCB() {
+		//  alert("success!");
+		db.transaction(queryDB, errorCB);
+	}
+
+	//function will be called when process succeed
+	function successVuelo() {
+		//  alert("success!");
+		db.transaction(queryVuelo, errorCB);
+	}
+
+	//select all from encabezado
+	function queryDB(tx) {
+		tx
+				.executeSql(
+						'SELECT * FROM encabezado WHERE id = (SELECT MAX(id) FROM ENCABEZADO)',
+						[], querySuccess, errorCB);
+	}
+
+	//select all from vuelo
+	function queryVuelo(tx) {
+		tx
+				.executeSql(
+						'SELECT * FROM vuelo where idforeign = (SELECT MAX(id) FROM ENCABEZADO)',
+						[], querySuccessVuelo, errorCB);
+	}
+
+	//Muestra la lista de vuelos
+	function querySuccessVuelo(tx, result) {
+		$('#ListVuelo').empty();
+		$.each(result.rows, function(index) {
+			var row = result.rows.item(index);
+			$('#ListVuelo').append(
+					'<ul> From: ' + row['fromv'] + ' To: ' + row['tov']
+							+ ' Platform departure: ' + row['pdeparture']
+							+ '  Platform Arrive: ' + row['parrive']
+							+ ' Flight Departure: ' + row['fdeparture']
+							+ ' Flight Arrive: ' + row['farrive'] + ' Pax: '
+							+ row['pax'] + ' Load: ' + row['load']
+							+ ' Observation: ' + row['observaciones']
+							+ '</ul>$tag');
+		});
+
+		$('#ListVuelo').listview();
+	}
+
+	function querySuccess(tx, result) {
+		$('#List').empty();
+		$.each(result.rows, function(index) {
+			var row = result.rows.item(index);
+			//Este máximo asegura que los vuelos se enlacen al encabezado correcto.
+			maximo = row['id'];
+			$('#List').append(
+					'_$ta_$tag_$ta Date: ' + row['fecha'] + ' No Flight: '
+							+ row['flight'] + ' Aircraft: ' + row['aircraft']
+							+ '  Flight Type: ' + row['type'] + ' Base: '
+							+ row['base'] + ' Client: ' + row['client']
+							+ ' Pilot: ' + row['pilot'] + ' Copilot: '
+							+ row['copilot'] + '_$ta_$tag_$ta_$tag');
+		});
+
+		$('#List').listview();
+	}
+
+	save = function() {
+
+		db.transaction(saveEncabezado, errorCB, successCB);
+	}
+
+	//guarda los vuelos
+	saveVuelo = function() {
+		db.transaction(saveFlight, errorCB, successVuelo);
+
+	}
+
+	//Vuelos, verificar y guardar los vuelos
+	saveFlight = function(tx) {
+		var fromv = document.getElementById("fromv").value;
+		var tov = document.getElementById("tov").value;
+		var pdeparture = document.getElementById("pdeparture").value;
+		var parrive = document.getElementById("parrive").value;
+		var fdeparture = document.getElementById("fdeparture").value;
+		var farrive = document.getElementById("farrive").value;
+		var pax = document.getElementById("pax").value;
+		var load = document.getElementById("load").value;
+		var observacion = document.getElementById("txtAnotaciones").value;
+
+		if (fromv == "") {
+			alert("Choose From in Journey, Please")
+		} else if (tov == "") {
+			alert("Choose To in Journey, Please")
+		} else if (pdeparture == "") {
+			alert("Choose Time platform departure, Please")
+		} else if (parrive == "") {
+			alert("Choose Time platform Arrive, Please")
+		} else if (fdeparture == "") {
+			alert("Choose Time Flight departure, Please")
+		} else if (farrive == "") {
+			alert("Choose Time Flight Arrive, Please")
+		} else if (pax == "") {
+			alert("Write pax, Please")
+		} else if (load == "") {
+			alert("write load, Please")
+		} else {
+			//guardar los vuelos
+			var query = 'INSERT INTO vuelo(idforeign,fromv,tov,pdeparture,parrive,fdeparture,farrive,pax,load,observaciones) VALUES ('
+					+ maximo
+					+ ',"'
+					+ fromv
+					+ '","'
+					+ tov
+					+ '","'
+					+ pdeparture
+					+ '","'
+					+ parrive
+					+ '","'
+					+ fdeparture
+					+ '","'
+					+ farrive
+					+ '",' + pax + ',' + load + ',"' + observacion + '")';
+
+			alert(query);
+			tx.executeSql(query);
+			}
+	}
+	
+</script>
+</head>
+
+<body>
+	<!-- Home -->
+	<div data-role="page" id="page1">
+		<div data-theme="a" data-role="header" data-position="fixed">
+			<h2>Icarus Flight</h2>
+
+			<a data-role="button" data-inline="true" href="#page1"
+				data-icon="gear" data-iconpos="top" class="ui-btn-right"> </a>
+		</div>
+		<div data-role="content"
+			style="background-image: url(images/sky460.png); background-repeat: repeat-x">
+			
+				<div style="display: inline">
+					<p>
+					<a href="#www.seicotechnology.com">
+						<img
+							src="http://www.seicotechnology.com/images/LOGO_SEICO_COLOR.png"
+							width="151" height="72" />
+							</a>
+				</div>
+			
+
+			<p>&nbsp;</p>
+			<div class="ui-grid-b">
+				<div class="ui-block-a"></div>
+				<div class="ui-block-b">
+					<div class="ui-title">MAIN MENU</div>
+				</div>
+				<div class="ui-block-c"></div>
+				<div class="ui-block-a">
+					<a href="#flightstats">New Flight</a>
+				</div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c"></div>
+				<div class="ui-block-a">Overview Flights</div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c">Sync to Server</div>
+				<div class="ui-block-a"></div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c">Check for new version</div>
+			</div>
+            <p id="deviceProperties">Loading device properties...</p>
+
+
+		</div>
+	</div>
+	<!-- Start of second page -->
+	<!-- Home -->
+	<div data-role="page" id="flightstats">
+		<div data-theme="a" data-role="header" data-position="fixed">
+			<h2>Icarus Flight</h2>
+			<a data-role="button" href="#page1" data-icon="home"
+				data-iconpos="top" class="ui-btn-left"> </a> <a data-role="button"
+				data-inline="true" href="#page1" data-icon="gear" data-iconpos="top"
+				class="ui-btn-right"> </a>
+
+		</div>
+		<div data-role="content">
+			<div class="ui-grid-solo">
+				<h3>
+					FLIGHT STATS <img src="images/cronometer.png" width="64"
+						height="79" alt="Cronometer">
+				</h3>
+			</div>
+
+			<!-- Fecha, Número y Matrícula-->
+
+			<div class="ui-grid-c" id="grdFlight2">
+
+				<div class="ui-block-a">
+					<label for="Ldate"> Date: </label> <input name="TFdate4"
+						id="TFdate4" placeholder="dd/mm/yyyy" width="80%" value=""
+						type="date" data-inline="true" />
+
+				</div>
+
+
+
+				<div class="ui-block-b">
+					<label for="Lflightnumber">Flight Number</label> <input
+						name="TFflight" id="TFflight" placeholder="Flight sheet no."
+						type="number">
+
+
+
+				</div>
+
+
+				<div class="ui-block-c">
+					<label for="Laircraft">Aircraft</label> <select name="aircraft"
+						id="aircraft">
+						<option value="">Choose</option>
+						<option value="HK-4784">HK-4784</option>
+						<option value="HK-4855">T34-855</option>
+						<option value="HK-5540">T34-900</option>
+					</select>
+
+
+
+				</div>
+
+
+
+			</div>
+
+
+			<!-- Fila en Blanco-->
+
+			<div class="ui-grid-c"></div>
+
+
+			<!--Cliente, Base y Tipo de Vuelo -->
+
+			<div class="ui-grid-b">
+
+				<div class="ui-block-b">
+					<label for="Lclient"> Client: </label><select name="client"
+						id="client">
+						<option value="">Choose</option>
+						<option value="Mega">Mega</option>
+						<option value="C.M.R">C.M.R</option>
+						<option value="Helicol">Helicol</option>
+						<option value="Helistar">Helistar</option>
+						<option value="Satena">Satena</option>
+					</select>
+				</div>
+
+				<div class="ui-block-b">
+					<label for="Lbase"> Base: </label><select name="base" id="base">
+						<option value="">Choose</option>
+						<option value="Apartado">Apartado</option>
+						<option value="Santa Marta">Santa Marta</option>
+						<option value="Valle del Cauca">Valle del Cauca</option>
+					</select>
+
+				</div>
+
+				<div class="ui-block-b">
+					<label for="Lflighttype"> Flight Type: </label> <select name="type"
+						id="type">
+						<option value="">Choose</option>
+						<option value="Prueba">Vuelo de Prueba</option>
+						<option value="Traslado">Vuelo de Traslado</option>
+						<option value="ChequeoPil">Vuelo de Chequeo de Piloto</option>
+						<option value="ChequeoCop">Vuelo de Chequeo de Copiloto</option>
+					</select>
+				</div>
+
+			</div>
+
+			<br />
+
+			<div class="ui-grid-b">
+				<div class="ui-block-b">
+					<div class="ui-block-a">
+						<h3>CREW</h3>
+					</div>
+					<img src="images/pilot.png" width="83" height="89" alt="Crew">
+				</div>
+
+				<div class="ui-block-b"></div>
+
+				<div class="ui-block-b"></div>
+
+
+			</div>
+
+
+			<div class="ui-grid-b">
+				<div class="ui-block-b">
+					<label for="lpilot"> Pilot: </label> <select style="width: 60"
+						name="pilot" id="pilot">
+						<option value="">Choose</option>
+						<option value="PCH-150">Alberto Cruz - PCH-150</option>
+						<option value="PTL-230">Adriana Martinez - PTL-230</option>
+						<option value="PTL-124">Carlos Ortiz - PTL-124</option>
+						<option value="PTL-223">Fernando Suarez - PTL-223</option>
+					</select>
+				</div>
+
+				<div class="ui-block-b">
+					<label for="Lcopilot"> Co-Pilot: </label> <select style="width: 60"
+						name="copilot" id="copilot">
+						<option value="">Choose</option>
+						<option value="PCH-100">Andres Torres - PCH-150</option>
+						<option value="PTL-330">Andrea Gutierrez - PTL-330</option>
+						<option value="PTL-275">Cesar Valencia - PTL-275</option>
+						<option value="PTL- 765">Fabio Roa - PTL-765</option>
+					</select>
+				</div>
+				<div class="ui-block-b">
+					<label for="Lengineer">Fligth Engineer</label> <select
+						name="select" id="engineer" style="width: 60"><option
+							value="">Choose</option>
+						<option value="IDVH-018">Manuel López - IDVH-018</option>
+						<option value="IDVH-200">Ricardo Moreno - IDVH-200</option>
+						<option value="IDVH-075">Victor Perna - IDVH-075</option>
+					</select>
+				</div>
+				<div class="ui-block-b"></div>
+
+
+				<div class="ui-grid-c">
+					<div class="ui-block-c"></div>
+					<div class="ui-block-c"></div>
+					<div class="ui-block-c">
+						<input type="submit" name="btnNew" id="btnNew"
+							value="Agregar Vuelo" onclick="saveVuelo()">
+					</div>
+					<div class="ui-block-c">
+						<input type="submit" name="btnDel" id="btnNew"
+							value="Eliminar Vuelo">
+					</div>
+
+
+
+				</div>
+
+				<div class="ui-grid-c">
+					<div class="ui-block-c">
+						<div class="ui-title">Journey</div>
+					</div>
+					<div class="ui-block-c">
+						<div class="ui-title">Platform time</div>
+					</div>
+					<div class="ui-block-c">
+						<div class="ui-title">Flight Time</div>
+					</div>
+					<div class="ui-block-c">
+						<div class="ui-title">Passengers/Load</div>
+					</div>
+
+				</div>
+				<div class="ui-grid-c">
+					<div class="ui-block-c">
+						<div class="ui-grid-duo">
+							<div class="ui-block-b">
+								<div class="ui-title">From</div>
+
+							</div>
+							<div class="ui-title">
+								<div class="ui-title">To</div>
+							</div>
+
+						</div>
+					</div>
+					<div class="ui-block-c">
+						<div class="ui-grid-b">
+							<div class="ui-block-b">
+								<div class="ui-title">Depart</div>
+							</div>
+							<div class="ui-block-b">
+								<div class="ui-title">Arrive</div>
+							</div>
+							<div class="ui-block-b">
+								<div class="ui-title">Block Time</div>
+							</div>
+
+						</div>
+					</div>
+					<div class="ui-block-c">
+						<div class="ui-grid-b">
+							<div class="ui-block-c">
+								<div class="ui-title">Take off</div>
+							</div>
+							<div class="ui-block-c">
+								<div class="ui-title">Landing</div>
+							</div>
+							<div class="ui-block-c">
+								<div class="ui-title">Flight Time</div>
+							</div>
+						</div>
+					</div>
+					<div class="ui-block-c">
+						<div class="ui-grid-duo">
+							<div class="ui-block-b">
+								<div class="ui-title">Pax</div>
+							</div>
+							<div class="ui-block-b">
+								<div class="ui-title">Load</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="ui-grid-c">
+			<div class="ui-block-c">
+				<div class="ui-grid-duo">
+					<div class="ui-block-b">
+						<select name="fromv" id="fromv">
+							<option value="">Choose</option>
+							<option value="BAQ">Barranquilla</option>
+							<option value="BOG">Bogotá</option>
+							<option value="CLO">Cali</option>
+							<option value="MDE">Medellín</option>
+						</select>
+					</div>
+					<div class="ui-block-b">
+						<select name="fromv" id="fromv">
+							<option value="">Choose</option>
+							<option value="BAQ">Barranquilla</option>
+							<option value="BOG">Bogotá</option>
+							<option value="CLO">Cali</option>
+							<option value="MDE">Medellín</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="ui-block-c"></div>
+			<div class="ui-block-c"></div>
+			<div class="ui-block-c"></div>
+
+
+
+		</div>
+	</div>
+</body>
+</html>

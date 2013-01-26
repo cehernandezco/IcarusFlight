@@ -1,0 +1,193 @@
+
+/****** Object:  Table [aeronave]    Script Date: 11/16/2012 16:05:51 ******/
+
+CREATE TABLE [aeronave](
+	[matricula] [varchar](15) NOT NULL,
+	[serieaeronave] [varchar](25) NOT NULL,
+	[fuselaje] [varchar](20) NULL,
+	[codigoma] [varchar](18) NULL,
+	
+ CONSTRAINT [aeronave_pk_rnv] PRIMARY KEY CLUSTERED 
+(
+	[serieaeronave] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON, FILLFACTOR = 90) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+
+CREATE TABLE [bases](
+	[codbase] [nchar](20) NOT NULL,
+	[telefonosbase] [nchar](10) NULL,
+	[faxbase] [nchar](10) NULL,
+	[direccionbase] [nchar](50) NULL,
+ CONSTRAINT [PK_bases] PRIMARY KEY CLUSTERED 
+(
+	[codbase] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+CREATE TABLE [paises](
+	[codigo] [char](5) NOT NULL,
+	[descripcion] [char](40) NULL,
+ CONSTRAINT [paises_pk_pss] PRIMARY KEY CLUSTERED 
+(
+	[codigo] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON, FILLFACTOR = 90) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+ALTER TABLE [paises] ADD  CONSTRAINT [DF_paises_descripcion]  DEFAULT ('') FOR [descripcion]
+GO
+
+CREATE TABLE [ciudades](
+	[codigociudad] [char](5) NOT NULL,
+	[descripcion] [char](40) NULL,
+	[codpais] [char](5) NULL,
+ CONSTRAINT [ciudades_pk_cdds] PRIMARY KEY CLUSTERED 
+(
+	[codigociudad] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON, FILLFACTOR = 90) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+ALTER TABLE [ciudades]  WITH CHECK ADD  CONSTRAINT [FK_ciudades_paises] FOREIGN KEY([codpais])
+REFERENCES [paises] ([codigo])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+
+ALTER TABLE [ciudades] CHECK CONSTRAINT [FK_ciudades_paises]
+GO
+
+ALTER TABLE [ciudades] ADD  CONSTRAINT [DF_ciudades_descripcion]  DEFAULT ('') FOR [descripcion]
+GO
+
+CREATE TABLE [personas](
+	[codigopersona] [char](12) NOT NULL,
+	[nombre] [char](40) NULL,
+	[apellido] [char](40) NULL,
+	[cc] [char](20) NULL,
+	[de] [char](20) NULL,
+	[direccion] [char](40) NULL,
+	[telefono] [char](20) NULL,
+	[telefono2] [char](20) NULL,
+	[correoelec] [char](40) NULL,
+	[nacimiento] [char](20) NULL,
+	[fechanacimiento] [smalldatetime] NULL,
+	[codciudad] [char](5) NULL,
+	[cargo] [char](40) NULL,
+	[base] [char](5) NULL,
+	[fechachequeotierra] [datetime] NULL,
+	[escuela] [char](40) NULL,
+	[fechaingreso] [datetime] NULL,
+	[codivision] [char](10) NULL,
+	[vlrhora] [float] NULL,
+	[activo] [bit] NULL,
+	[codtipocargo] [char](3) NULL,
+	[observaciones] [text] NULL,
+	[fotografia] [text] NULL,
+	[rango] [char](6) NULL,
+	[login] [char](10) NULL,
+	[controletto] [bit] NULL,
+	[tipopersonal] [char](3) NULL,
+	[experienciaav] [int] NULL,
+	[fecactexp] [smalldatetime] NULL,
+	[loa] [int] NULL,
+	[pendientecontrato] [bit] NULL,
+	[empresa] [char](50) NULL,
+	[ingles] [char](20) NULL,
+ CONSTRAINT [personas_pk_prsns] PRIMARY KEY CLUSTERED 
+(
+	[codigopersona] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON, FILLFACTOR = 90) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+ALTER TABLE [personas]  WITH NOCHECK ADD  CONSTRAINT [FK_CDDS_PERSONAS] FOREIGN KEY([codciudad])
+REFERENCES [ciudades] ([codigociudad])
+ON UPDATE CASCADE
+GO
+
+ALTER TABLE [personas] CHECK CONSTRAINT [FK_CDDS_PERSONAS]
+GO
+
+ALTER TABLE [personas]  WITH NOCHECK ADD  CONSTRAINT [FK_DVSNMPR_PERSONAS] FOREIGN KEY([codivision])
+REFERENCES [divisionempresa] ([codigodivision])
+ON UPDATE CASCADE
+GO
+
+ALTER TABLE [personas] CHECK CONSTRAINT [FK_DVSNMPR_PERSONAS]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_nombre]  DEFAULT ('') FOR [nombre]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_apellido]  DEFAULT ('') FOR [apellido]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_cc]  DEFAULT ('') FOR [cc]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_de]  DEFAULT ('') FOR [de]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_direccion]  DEFAULT ('') FOR [direccion]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_telefono]  DEFAULT ('') FOR [telefono]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_correoelec]  DEFAULT ('') FOR [correoelec]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_cargo]  DEFAULT ('') FOR [cargo]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_base]  DEFAULT ('') FOR [base]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_fechachequeotierra]  DEFAULT ('') FOR [fechachequeotierra]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_escuela]  DEFAULT ('') FOR [escuela]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_fechaingreso]  DEFAULT ('') FOR [fechaingreso]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_codivision]  DEFAULT ('') FOR [codivision]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_vlrhora]  DEFAULT ((0)) FOR [vlrhora]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_codtipocargo]  DEFAULT ('') FOR [codtipocargo]
+GO
+
+ALTER TABLE [personas] ADD  CONSTRAINT [DF_personas_observaciones]  DEFAULT ('') FOR [observaciones]
+GO
+
+
+
+
+CREATE VIEW [trip]
+AS
+SELECT     codigopersona AS codigo, nombre AS nombres, apellido AS apellidos, cc AS documento, direccion, telefono AS telefonocasa, telefono2 AS celular, 
+                      fechanacimiento, fechaingreso, activo, rango, SPACE(10) AS limitacion, cargo AS codtipotripulante, fotografia
+FROM         dbo.personas AS i
+WHERE     (codtipocargo = 'PIL')
+
+
+GO

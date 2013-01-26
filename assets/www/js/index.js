@@ -20,6 +20,8 @@ function verifyUser()
 		//location.href="#pglogin";
 		
 	}else{
+		$.mobile.changePage("./#popupBasic");
+		
 		log("invalid");
 		alert("Invalid");
 	}

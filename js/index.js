@@ -7,8 +7,14 @@ function init(){
 	$.mobile.defaultPageTransition = 'slide';
 	$.mobile.phonegapNavigationEnabled = "true";
 	$.mobile.page.prototype.options.backBtnText = "Back";
+	verifyresol();
 	verifydb();
 	timer();
+}
+function verifyresol(){
+	witdh = screen.width;
+	height = screen.height;
+	alert("your resolution is:"+width+"x"+height);
 }
 function verifyUser()
 {

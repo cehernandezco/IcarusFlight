@@ -1,0 +1,865 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title></title>
+<link rel="stylesheet" href="css/Icarus.css" />
+<link rel="stylesheet" href="css/my.css" />
+
+<link rel="stylesheet" href="jquery.mobile-1.0rc2.min.css" />
+
+<script type="text/javascript" src="js/cordova-2.1.0.js"></script>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/jquery.mobile-1.1.1.min.js"></script>
+
+<script type="text/javascript">
+	//add listener when device ready
+	document.addEventListener("deviceready", onDeviceReady, false);
+	//Es el último vuelo ingresado
+	var maximo;
+	var db = window.openDatabase("DB", "1.0", "Just a Dummy DB", 200000); //will create database Dummy_DB or open it
+
+	//function will be called when device ready
+	function onDeviceReady() {
+		db.transaction(populateDB, errorCB, null);
+	}
+
+	//create table and insert some record
+	function populateDB(tx) {
+		/*tx.executeSql('DROP TABLE IF EXISTS encabezado');
+		tx.executeSql('DROP TABLE IF EXISTS vuelo');*/
+		tx
+				.executeSql('CREATE TABLE IF NOT EXISTS encabezado (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha date, flight int, aircraft varchar(20), client varchar(30), base varchar(30), type varchar(30), pilot varchar(30), copilot varchar(30))');
+		tx
+				.executeSql('CREATE TABLE IF NOT EXISTS vuelo (id INTEGER PRIMARY KEY AUTOINCREMENT, idforeign INTEGER, fromv varchar(30), tov varchar(30), pdeparture varchar(30), parrive varchar(30), fdeparture varchar(30), farrive varchar(30), pax INTEGER, load INTEGER, observaciones text, foreign key(idforeign) references encabezado(id))');
+
+	}
+	//create table and insert some record
+	function saveEncabezado(tx) {
+
+		var fecha = document.getElementById("TFdate4").value;
+		var flight = document.getElementById("TFflight").value;
+		var aircraft = document.getElementById("aircraft").value;
+		var cliente = document.getElementById("client").value;
+		var base = document.getElementById("base").value;
+		var tipo = document.getElementById("type").value;
+		var piloto = document.getElementById("pilot").value;
+		var copiloto = document.getElementById("copilot").value;
+		var engineer = document.getElementById("engineer").value;
+		if (fecha == "") {
+			alert("Choose the date, please");
+		} else if (flight == "") {
+			alert("Choose the flight, please");
+		} else if (aircraft == "") {
+			alert("Choose the aircraft, please");
+		} else if (cliente == "") {
+			alert("Choose the client, please");
+		} else if (base == "") {
+			alert("Choose the base, please");
+		} else if (tipo == "") {
+			alert("Choose the flight type, please");
+		} else if (piloto == "") {
+			alert("Choose the pilot, please");
+		} else if (copiloto == "") {
+			alert("Choose the copilot, please");
+		} else if (engineer == "") {
+			alert("Choose the Flight Engineer, please");
+		} else {
+
+			var query = 'INSERT INTO encabezado(fecha,flight,aircraft,client,base,type,pilot,copilot) VALUES ("'
+					+ fecha
+					+ '","'
+					+ flight
+					+ '","'
+					+ aircraft
+					+ '","'
+					+ cliente
+					+ '","'
+					+ base
+					+ '","'
+					+ tipo
+					+ '","'
+					+ piloto
+					+ '","' + copiloto + '")';
+
+			//alert(query);
+			tx.executeSql(query);
+			alert('Saved Successfully');
+			
+		}
+
+	}
+
+	//function will be called when an error occurred
+	function errorCB(err) {
+		alert("Error processing SQL: " + err.code);
+	}
+
+	//function will be called when process succeed
+	function successCB() {
+		
+		db.transaction(queryDB, errorCB);
+		alert("Finding last Flight");
+		//alert("success!");
+	}
+
+	//function will be called when process succeed
+	function successVuelo() {
+		//  alert("success!");
+		db.transaction(queryVuelo, errorCB);
+	}
+
+	//select all from encabezado
+	function queryDB(tx) {
+		tx
+				.executeSql(
+						'SELECT * FROM encabezado WHERE id = (SELECT MAX(id) FROM ENCABEZADO)',
+						[], querySuccess, errorCB);
+	}
+
+	//select all from vuelo
+	function queryVuelo(tx) {
+		tx.executeSql(
+						'SELECT * FROM vuelo where idforeign = (SELECT MAX(id) FROM ENCABEZADO)',
+						[], querySuccessVuelo, errorCB);
+	}
+
+	//Muestra la lista de vuelos
+	function querySuccessVuelo(tx, result) {
+		$('#ListVuelo').empty();
+		$.each(result.rows, function(index) {
+			var row = result.rows.item(index);
+			$('#ListVuelo').append(
+					'<ul> From: ' + row['fromv'] + ' To: ' + row['tov']
+							+ ' Platform departure: ' + row['pdeparture']
+							+ '  Platform Arrive: ' + row['parrive']
+							+ ' Flight Departure: ' + row['fdeparture']
+							+ ' Flight Arrive: ' + row['farrive'] + ' Pax: '
+							+ row['pax'] + ' Load: ' + row['load']
+							+ ' Observation: ' + row['observaciones']
+							+ '</ul>$tag');
+		});
+
+		$('#ListVuelo').listview();
+	}
+
+	function querySuccess(tx, result) {
+		$('#List').empty();
+		$.each(result.rows, function(index) {
+			var row = result.rows.item(index);
+			//Este máximo asegura que los vuelos se enlacen al encabezado correcto.
+			maximo = row['id'];
+			$('#List').append(
+					'Date: ' + row['fecha'] + ' No Flight: '
+							+ row['flight'] + ' Aircraft: ' + row['aircraft']
+							+ '  Flight Type: ' + row['type'] + ' Base: '
+							+ row['base'] + ' Client: ' + row['client']
+							+ ' Pilot: ' + row['pilot'] + ' Copilot: '
+							+ row['copilot'] );
+		});
+
+		$('#List').listview();
+	}
+
+	save = function() {
+
+		db.transaction(saveEncabezado, errorCB, successCB);
+		
+	}
+
+	//guarda los vuelos
+	saveVuelo = function() {
+		db.transaction(saveFlight, errorCB, successVuelo);
+
+	}
+
+	//Vuelos, verificar y guardar los vuelos
+	saveFlight = function(tx) {
+		var fromv = document.getElementById("fromv").value;
+		var tov = document.getElementById("tov").value;
+		var pdeparture = document.getElementById("pdeparture").value;
+		var parrive = document.getElementById("parrive").value;
+		var fdeparture = document.getElementById("fdeparture").value;
+		var farrive = document.getElementById("farrive").value;
+		var pax = document.getElementById("pax").value;
+		var load = document.getElementById("load").value;
+		var observacion = document.getElementById("txtAnotaciones").value;
+
+		if (fromv == "") {
+			alert("Choose From in Journey, Please")
+		} else if (tov == "") {
+			alert("Choose To in Journey, Please")
+		} else if (pdeparture == "") {
+			alert("Choose Time platform departure, Please")
+		} else if (parrive == "") {
+			alert("Choose Time platform Arrive, Please")
+		} else if (fdeparture == "") {
+			alert("Choose Time Flight departure, Please")
+		} else if (farrive == "") {
+			alert("Choose Time Flight Arrive, Please")
+		} else if (pax == "") {
+			alert("Write pax, Please")
+		} else if (load == "") {
+			alert("write load, Please")
+		} else {
+			//guardar los vuelos
+			var query = 'INSERT INTO vuelo(idforeign,fromv,tov,pdeparture,parrive,fdeparture,farrive,pax,load,observaciones) VALUES ('
+					+ maximo
+					+ ',"'
+					+ fromv
+					+ '","'
+					+ tov
+					+ '","'
+					+ pdeparture
+					+ '","'
+					+ parrive
+					+ '","'
+					+ fdeparture
+					+ '","'
+					+ farrive
+					+ '",' + pax + ',' + load + ',"' + observacion + '")';
+
+			alert(query);
+			tx.executeSql(query);
+			}
+	}
+	
+	
+	function calcular(v1,v2)
+{
+horas1=v1.split(":"); /*Mediante la función split separamos el string por ":" y lo convertimos en array. */ 
+horas2=v2.split(":");
+horatotale=new Array();
+for(a=0;a<3;a++) /*bucle para tratar la hora, los minutos y los segundos*/
+{
+horas1[a]=(isNaN(parseInt(horas1[a])))?0:parseInt(horas1[a]) /*si horas1[a] es NaN lo convertimos a 0, sino convertimos el valor en entero*/
+horas2[a]=(isNaN(parseInt(horas2[a])))?0:parseInt(horas2[a])
+horatotale[a]=(horas1[a]-horas2[a]);/* insertamos la resta dentro del array horatotale[a].*/
+}
+horatotal=new Date()  /*Instanciamos horatotal con la clase Date de javascript para manipular las horas*/
+horatotal.setHours(horatotale[0]); /* En horatotal insertamos las horas, minutos y segundos calculados en el bucle*/ 
+horatotal.setMinutes(horatotale[1]);
+horatotal.setSeconds(horatotale[2]);
+return horatotal.getHours()+":"+horatotal.getMinutes()+":"+
+horatotal.getSeconds();
+/*Devolvemos el valor calculado en el formato hh:mm:ss*/
+}
+	<!-- Calculo de tiempo Bloque -->
+	function calculobt(){
+
+	 //alert("Entrando");
+	var horaini = document.getElementById("pdeparture").value ;
+	 //alert("Asignó horaini "+horaini);
+	var horafin = document.getElementById("parrive").value;
+	//alert("Asignó horafin "+horafin);
+	
+	var tiempo =  calcular(horafin,horaini);
+	//alert("Calculó Tiempo "+ tiempo);
+	//alert("Asignando");
+document.getElementById("blocktime").value = tiempo;
+	}
+	
+	
+</script>
+<script type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/newwebservice.php?method=?",
+
+success: function(json){ 
+
+$("#aircraft").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#aircraft").append('<option value="'+item.matricula+'">'+item.matricula+'</option>');
+
+
+		
+    });
+
+
+
+}
+
+});
+
+/*
+Si el método que se le pasa en la url
+
+tiene un valor "?" jquery generará
+
+un valor aleatorio para la función que
+
+manejará la respuesta. Esto nos evita
+
+problemas con la cache*/
+
+})
+</script>
+<!-- ciudades -->
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webserviceciudades.php?method=?",
+
+success: function(json){ 
+
+
+$("#tov").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#tov").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+</script>
+
+<!-- ciudades -->
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webserviceciudades.php?method=?",
+
+success: function(json){ 
+
+$("#fromv").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#fromv").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+</script>
+<!-- bases -->
+
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webservicebases.php?method=?",
+
+success: function(json){ 
+
+$("#base").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#base").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+</script>
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webservicetrip.php?method=?",
+
+success: function(json){ 
+
+$("#pilot").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#pilot").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+</script>
+
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webservicetrip.php?method=?",
+
+success: function(json){ 
+
+$("#copilot").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#copilot").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+</script>
+
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webservicetrip.php?method=?",
+
+success: function(json){ 
+
+$("#engineer").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#engineer").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+</script>
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webserviceclient.php?method=?",
+
+success: function(json){ 
+
+$("#client").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#client").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+
+</script>
+
+<script language="javascript" type="application/javascript">
+$(document).ready(function () {
+
+
+$.ajax({
+
+dataType: "jsonp",
+
+data: "",
+
+url: "http://192.168.43.162/jsonp-demo/webservicetipovuelo.php?method=?",
+
+success: function(json){ 
+
+$("#type").append('<option value="">CHOOSE</option>');
+$.each(json, function(i,item){ 
+
+$("#type").append('<option value="'+item.descripcion+'">'+item.descripcion+'</option>');
+
+    });
+
+}
+});
+
+})
+</script>
+
+</head>
+
+<body>
+	<!-- Home -->
+	<div data-role="page" id="page1">
+		<div data-theme="a" data-role="header" data-position="fixed">
+			<h2>Icarus Flight</h2>
+
+			<a data-role="button" data-inline="true" href="#page1"
+				data-icon="gear" data-iconpos="top" class="ui-btn-right"> </a>
+		</div>
+		<div data-role="content"
+			style="background-image: url(images/sky460.png); background-repeat: repeat-x">
+
+			<div style="display: inline">
+				<a href="#www.seicotechnology.com"> <img
+					src="images/logo_seico.png" width="151" height="72" />
+
+				</a>
+			</div>
+
+			<p>&nbsp;</p>
+			<div class="ui-grid-b">
+				<div class="ui-block-a"></div>
+				<div class="ui-block-b">
+					<div class="ui-title">MAIN MENU</div>
+				</div>
+				<div class="ui-block-c"></div>
+				<div class="ui-block-a">
+					<div class="ui-title">
+						<a href="#flightstats">New Flight</a>
+					</div>
+				</div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c"></div>
+				<div class="ui-block-a">
+					<div class="ui-title">Overview Flights</div>
+				</div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c">
+					<div class="ui-title">Sync to Server</div>
+				</div>
+				<div class="ui-block-a"></div>
+				<div class="ui-block-b"></div>
+				<div class="ui-block-c">
+					<div class="ui-title">Check for new version</div>
+				</div>
+			</div>
+
+
+		</div>
+	</div>
+	<!-- Start of second page -->
+	<!-- Home -->
+	<div data-role="page" id="flightstats">
+		<div data-theme="a" data-role="header" data-position="fixed">
+			<h2>Icarus Flight</h2>
+			<a data-role="button" href="#page1" data-icon="home"
+				data-iconpos="top" class="ui-btn-left"> </a> <a data-role="button"
+				data-inline="true" href="#page1" data-icon="gear" data-iconpos="top"
+				class="ui-btn-right"> </a>
+
+		</div>
+		<div data-role="content">
+			<div class="ui-grid-solo">
+				<h3>
+					FLIGHT STATS <img src="images/cronometer.png" width="64"
+						height="79" alt="Cronometer">
+				</h3>
+			</div>
+			<form id="Sheetid" name="Sheetid">
+				<!-- Fecha, Número y Matrícula-->
+				<div class="ui-grid-c" id="grdFlight2">
+
+					<div class="ui-block-c">
+						<label for="date"> Date: </label> <input name="TFdate3"
+							id="TFdate4" placeholder="dd/mm/yyyy" width="80%" value=""
+							type="date" data-inline="true" />
+
+					</div>
+					<div class="ui-block-c">
+						<label for="txtFlightNumber">Flight Number</label> <input
+							name="TFflight" id="TFflight" placeholder="Flight sheet no."
+							type="number">
+
+					</div>
+					<div class="ui-block-c">
+						<label for="txtFlightNumber">Aircraft</label> <select
+							name="aircraft" id="aircraft">
+
+						</select>
+
+					</div>
+
+				</div>
+
+				<!-- Fila en Blanco-->
+
+				<br />
+
+
+				<!--Cliente, Base y Tipo de Vuelo -->
+
+				<div class="ui-grid-b">
+
+					<div class="ui-block-b">
+						<label for="selectclient"> Client: </label><select name="client"
+							id="client">
+						</select>
+					</div>
+
+					<div class="ui-block-b">
+						<label for="selectbase"> Base: </label><select name="base"
+							id="base">
+
+						</select>
+
+					</div>
+
+					<div class="ui-block-b">
+						<label for="selecttypefl"> Flight Type: </label> <select
+							name="type" id="type">
+
+						</select>
+					</div>
+
+				</div>
+
+				<br />
+
+				<div class="ui-grid-b">
+					<div class="ui-block-b">
+						<div class="ui-block-a">
+							<h3>CREW</h3>
+						</div>
+						<img src="images/pilot.png" width="83" height="89" alt="Crew">
+					</div>
+
+					<div class="ui-block-b"></div>
+
+					<div class="ui-block-b"></div>
+
+
+				</div>
+
+				<br />
+				<div class="ui-grid-b">
+					<div class="ui-block-b">
+						<label for="selectclient"> Pilot: </label> <select
+							style="width: 60" name="pilot" id="pilot">
+						</select>
+					</div>
+
+					<div class="ui-block-b">
+						<label for="selectclient"> Co-Pilot: </label> <select
+							style="width: 60" name="pilot" id="copilot">
+						</select>
+					</div>
+					<div class="ui-block-b">
+						Fligth Engineer <select name="select" id="engineer"
+							style="width: 60">
+						</select>
+					</div>
+				</div>
+
+				<p>&nbsp;</p>
+				<div class="ui-grid-c">
+					<div class="ui-block-a"></div>
+					<div class="ui-block-b"></div>
+					<div class="ui-block-c">
+						<input type="button" id="new" name="new" onclick="save()"
+							value="SAVE SHEET">
+					</div>
+					<div class="ui-block-d">
+						<input type="reset" id="reset" name="reset" value="RESET">
+					</div>
+
+				</div>
+			</form>
+			<br/>
+			<div class="ui-grid-solo" style="border-color: blue;">
+				<div class="ui-block-a">
+					<ul id="List">
+
+					</ul>
+				</div>
+
+			</div>
+
+			<p>&nbsp;</p>
+
+			<!-- Flights grid -->
+			<div class="ui-grid-c">
+				<div class="ui-block-c"></div>
+				<div class="ui-block-c"></div>
+				<div class="ui-block-c">
+					<input type="submit" name="btnNew" id="btnNew" value="Save Flight"
+						onclick="saveVuelo()">
+				</div>
+				<div class="ui-block-c">
+					<!--<input type="submit" name="btnDel" id="btnNew"
+						value="Eliminar Vuelo">-->
+				</div>
+
+
+
+			</div>
+
+			<div class="ui-grid-c">
+				<div class="ui-block-c">
+					<div class="ui-title">Journey</div>
+				</div>
+				<div class="ui-block-c">
+					<div class="ui-title">Platform time</div>
+				</div>
+				<div class="ui-block-c">
+					<div class="ui-title">Flight Time</div>
+				</div>
+				<div class="ui-block-c">
+					<div class="ui-title">Passengers/Load</div>
+				</div>
+
+			</div>
+			<div class="ui-grid-c">
+				<div class="ui-block-c">
+					<div class="ui-grid-duo">
+						<div class="ui-block-b">
+							<div class="ui-title">From</div>
+
+						</div>
+						<div class="ui-title">
+							<div class="ui-title">To</div>
+						</div>
+
+					</div>
+				</div>
+				<div class="ui-block-c">
+					<div class="ui-grid-b">
+						<div class="ui-block-b">
+							<div class="ui-title">Depart</div>
+						</div>
+						<div class="ui-block-b">
+							<div class="ui-title">Arrive</div>
+						</div>
+						<div class="ui-block-b">
+							<div class="ui-title">Block Time</div>
+						</div>
+
+					</div>
+				</div>
+				<div class="ui-block-c">
+					<div class="ui-grid-b">
+						<div class="ui-block-c">
+							<div class="ui-title">Take off</div>
+						</div>
+						<div class="ui-block-c">
+							<div class="ui-title">Landing</div>
+						</div>
+						<div class="ui-block-c">
+							<div class="ui-title">Flight Time</div>
+						</div>
+					</div>
+				</div>
+				<div class="ui-block-c">
+					<div class="ui-grid-duo">
+						<div class="ui-block-b">
+							<div class="ui-title">Pax</div>
+						</div>
+						<div class="ui-block-b">
+							<div class="ui-title">Load</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="ui-grid-c">
+				<div class="ui-block-c">
+					<div class="ui-grid-duo">
+						<div class="ui-block-b">
+							<select name="fromv" id="fromv">
+							</select>
+						</div>
+						<div class="ui-block-b">
+							<select name="fromv" id="tov">
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="ui-block-c">
+					<div class="ui-grid-b">
+						<div class="ui-block-b">
+							<input name="pdeparture" id="pdeparture" placeholder="Dep.Hour"
+								type="time" onBlur="calculobt()">
+						</div>
+						<div class="ui-block-b">
+							<input name="parrive" id="parrive" placeholder="Arrive Hour"
+								type="time">
+						</div>
+						<div class="ui-block-b">
+							<input name="blocktime" id="blocktime" placeholder="Block Time"
+								type="time">
+						</div>
+					</div>
+				</div>
+
+				<div class="ui-block-c">
+					<div class="ui-block-b">
+						<input name="fdeparture" id="fdeparture"
+							placeholder="Take Off Hour" type="time">
+					</div>
+					<div class="ui-block-b">
+						<input name="farrive" id="farrive" placeholder="Landing Hour"
+							type="time">
+					</div>
+					<div class="ui-block-b">
+						<input name="flighttime" id="flighttime" placeholder="Flight Time"
+							type="time">
+					</div>
+				</div>
+
+
+
+				<div class="ui-block-c">
+					<div class="ui-grid-duo">
+						<div class="ui-block-b">
+							<input name="pax" id="pax" placeholder="Passengers" type="number">
+						</div>
+						<div class="ui-block-b">
+							<input name="load" id="load" placeholder="Load" type="number">
+						</div>
+					</div>
+				</div>
+
+
+
+			</div>
+		</div>
+	</div>
+</body>
+</html>

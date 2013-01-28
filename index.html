@@ -1,31 +1,67 @@
-<!DOCTYPE html>
-<html>
-    <head>
-    <title>Hello PhoneGap</title>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="">
+<!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icarus Flight - Login</title>
+<link href="boilerplate.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="jquery.mobile-1.0rc2.min.css" />
 
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
-        <meta charset="utf-8">
+<script type="text/javascript" src="js/cordova-2.1.0.js"></script>
 
 
-        <script type="text/javascript" charset="utf-8" src="phonegap.js"></script>
-        <script type="text/javascript">
+<script	src="js/jquery.min.js"></script>
+<script src="js/jquery.mobile-1.1.1.min.js"></script>
+<script type="text/javascript" src="js/index.js"></script>
+<link href="css/cuadricula.css" rel="stylesheet" type="text/css">
 
-        function onBodyLoad()
-        {       
-            document.addEventListener("deviceready", onDeviceReady, false);
-        }
+<!-- 
+Para obtener más información sobre los comentarios condicionales situados alrededor de las etiquetas html en la parte superior del archivo:
+paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/
+  
+Haga lo siguiente si usa su compilación personalizada de modernizr (http://www.modernizr.com/):
+* inserte el vínculo del código js aquí
+* elimine el vínculo situado debajo para html5shiv
+* añada la clase "no-js" a las etiquetas html en la parte superior
+* también puede eliminar el vínculo con respond.min.js si ha incluido MQ Polyfill en su compilación de modernizr 
+-->
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<script src="respond.min.js"></script>
+</head>
+<body>
 
-        function onDeviceReady()
-        {
-            // do your thing!
-			location.href="./assets/www/index.html";
-            navigator.notification.alert("PhoneGap is working")
-        }
-
-        </script>
-    </head>
-    <body onload="onBodyLoad()">
-    <h1>Hey, it's PhoneGap!</h1>
-    </body>
+<div data-role="page" id="pgindimg">
+<div id="indeximage">
+  <img src="images/background_512.png" alt="Background"> </div>
+</div>
+<div id="divlogi"></div>
+<div data-role="page" id="pglogin">
+  <div id="divlogin" align="center"> <form name="form1" method="post" action="">
+    <p>
+      <label for="login">Login</label>
+      <input type="text" name="login" id="login" placeholder="Login">
+    </p>
+<label for="password">Password</label>
+      <input type="password" name="password" id="password" placeholder="Password">
+      <br>
+      <input type="checkbox" id="checkstay"><label for="checkstay">Stay signed in</label> 
+      <br>
+      <input type="button" id="btnlogin" value="Login">
+    
+<div data-rel="popup" id="popupBasic">
+	<p>Invalid User or Password<p>
+</div>
+  </form></div>
+<div id="content">
+ 
+</div>
+</div>
+</body>
 </html>
-

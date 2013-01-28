@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Page Title</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="css/Icarus.css" />
+<link rel="stylesheet" href="css/my.css" />
+
+<link rel="stylesheet" href="jquery.mobile-1.0rc2.min.css" />
+
+<script type="text/javascript" src="js/cordova-2.1.0.js"></script>
+
+<script	src="js/jquery.min.js"></script>
+<script src="js/jquery.mobile-1.1.1.min.js"></script>
+
+<script type="text/javascript">
+//add listener when device ready
+	document.addEventListener("deviceready", onDeviceReady, false);
+	//Es el último vuelo ingresado
+	var maximo;
+	var db = window.openDatabase("DB", "1.0", "Just a Dummy DB", 200000); //will create database Dummy_DB or open it
+
+	//function will be called when device ready
+	function onDeviceReady(){
+        db.transaction(populateDB, errorCB, null);
+	}
+
+	//create table and insert some record
+	function populateDB(tx) {
+		/*tx.executeSql('DROP TABLE IF EXISTS encabezado');
+		tx.executeSql('DROP TABLE IF EXISTS vuelo');*/
+        tx.executeSql('CREATE TABLE IF NOT EXISTS encabezado (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha date, flight int, aircraft varchar(20), client varchar(30), base varchar(30), type varchar(30), pilot varchar(30), copilot varchar(30))');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS vuelo (id INTEGER PRIMARY KEY AUTOINCREMENT, idforeign INTEGER, fromv varchar(30), tov varchar(30), pdeparture varchar(30), parrive varchar(30), fdeparture varchar(30), farrive varchar(30), pax INTEGER, load INTEGER, observaciones text, foreign key(idforeign) references encabezado(id))');
+     
+        
+       
+    }
+	//create table and insert some record
+	function saveEncabezado(tx) {
+		
+        var fecha = document.getElementById("TFdate4").value;
+        var flight = document.getElementById("TFflight").value;
+        var aircraft = document.getElementById("aircraft").value;
+        var cliente = document.getElementById("client").value;
+        var base = document.getElementById("base").value;
+        var tipo = document.getElementById("type").value;
+        var piloto = document.getElementById("pilot").value;
+        var copiloto = document.getElementById("copilot").value;
+        if(fecha=="")
+        	{
+        	alert("Choose the date, please");
+        	}
+        else if(flight =="")
+		{
+		alert("Choose the flight, please");
+		}
+        	else if(aircraft =="")
+        		{
+        		alert("Choose the aircraft, please");
+        		}
+        	else if(cliente =="")
+    		{
+    		alert("Choose the client, please");
+    		}
+        	else if(base =="")
+    		{
+    		alert("Choose the base, please");
+    		}
+        	else if(tipo =="")
+    		{
+    		alert("Choose the flight type, please");
+    		}
+        	else if(piloto =="")
+    		{
+    		alert("Choose the pilot, please");
+    		}
+        	else if(copiloto =="")
+    		{
+    		alert("Choose the copilot, please");
+    		}
+        	else{
+        
+        var query = 'INSERT INTO encabezado(fecha,flight,aircraft,client,base,type,pilot,copilot) VALUES ("'+fecha+'","'+flight+'","'+aircraft+'","'+ cliente+'","'+base+'","'+tipo+'","'+piloto+'","'+copiloto+'")';
+       
+        alert(query);
+        tx.executeSql(query);
+      
+	}
+        
+     
+    }
+	
+	//function will be called when an error occurred
+	function errorCB(err) {
+        alert("Error processing SQL: "+err.code);
+	}
+
+	//function will be called when process succeed
+	function successCB() {
+      //  alert("success!");
+        db.transaction(queryDB,errorCB);
+    }
+	
+	
+	//function will be called when process succeed
+	function successVuelo() {
+      //  alert("success!");
+        db.transaction(queryVuelo,errorCB);
+    }
+
+	//select all from encabezado
+	function queryDB(tx){
+		tx.executeSql('SELECT * FROM encabezado WHERE id = (SELECT MAX(id) FROM ENCABEZADO)',[],querySuccess,errorCB);
+	}
+	
+	
+	//select all from vuelo
+	function queryVuelo(tx){
+		tx.executeSql('SELECT * FROM vuelo where idforeign = (SELECT MAX(id) FROM ENCABEZADO)',[],querySuccessVuelo,errorCB);
+	}
+	
+	//Muestra la lista de vuelos
+	function querySuccessVuelo(tx,result){
+		$('#ListVuelo').empty();
+		$.each(result.rows,function(index){
+			var row = result.rows.item(index);
+			$('#ListVuelo').append('<ul> From: '+row['fromv']+' To: '+row['tov']+' Platform departure: '+row['pdeparture']+'  Platform Arrive: '+row['parrive']+' Flight Departure: '+row['fdeparture']+' Flight Arrive: '+row['farrive']+' Pax: '+row['pax']+' Load: '+row['load']+' Observation: '+row['observaciones']+'</ul>');
+		});
+
+		
+		$('#ListVuelo').listview();
+	}
+
+	function querySuccess(tx,result){
+		$('#List').empty();
+		$.each(result.rows,function(index){
+			var row = result.rows.item(index);
+			//Este máximo asegura que los vuelos se enlacen al encabezado correcto.
+			maximo = row['id'];
+			$('#List').append('<ul> Date: '+row['fecha']+' No Flight: '+row['flight']+' Aircraft: '+row['aircraft']+'  Flight Type: '+row['type']+' Base: '+row['base']+' Client: '+row['client']+' Pilot: '+row['pilot']+' Copilot: '+row['copilot']+'</ul>');
+		});
+
+		
+		$('#List').listview();
+	}
+	
+	save = function()
+	{
+		
+		 db.transaction(saveEncabezado, errorCB, successCB);
+	}
+	
+	//guarda los vuelos
+	saveVuelo = function()
+	{
+		 db.transaction(saveFlight, errorCB, successVuelo);
+		
+	}
+	
+//Vuelos, verificar y guardar los vuelos
+	saveFlight = function(tx)
+	{
+		var fromv = document.getElementById("fromv").value;
+		var tov = document.getElementById("tov").value;
+		var pdeparture = document.getElementById("pdeparture").value;
+		var parrive = document.getElementById("parrive").value;
+		var fdeparture = document.getElementById("fdeparture").value;
+		var farrive = document.getElementById("farrive").value;
+		var pax = document.getElementById("pax").value;
+		var load = document.getElementById("load").value;
+		var observacion = document.getElementById("txtAnotaciones").value; 
+		
+		if(fromv == "")
+			{
+			alert("Choose From in Journey, Please")
+			}
+		else if(tov == "")
+			{
+			alert("Choose To in Journey, Please")
+			}
+		else if(pdeparture == "")
+		{
+		alert("Choose Time platform departure, Please")
+		}
+		else if(parrive == "")
+		{
+		alert("Choose Time platform Arrive, Please")
+		}
+		else if(fdeparture == "")
+		{
+		alert("Choose Time Flight departure, Please")
+		}
+		else if(farrive == "")
+		{
+		alert("Choose Time Flight Arrive, Please")
+		}
+		else if(pax == "")
+		{
+		alert("Write pax, Please")
+		}
+		else if(load == "")
+		{
+		alert("write load, Please")
+		}
+		else
+			{
+			//guardar los vuelos
+			 var query = 'INSERT INTO vuelo(idforeign,fromv,tov,pdeparture,parrive,fdeparture,farrive,pax,load,observaciones) VALUES ('+maximo+',"'+fromv+'","'+tov+'","'+ pdeparture+'","'+parrive+'","'+fdeparture+'","'+farrive+'",'+pax+','+load+',"'+observacion+'")';
+		       
+		        alert(query);
+		        tx.executeSql(query);
+			}
+	}
+	
+	
+	</script>
+</head>
+
+<body>
+
+ <form id="form" name="form">
+<div data-role="content">
+			
+					<h3>Flight Stats</h3>
+					<form action="">
+                    <div class="ui-grid-d">
+				<div class="ui-block-a">
+				  <label for="date"> Date:    </label>
+				  <input
+										name="TFdate4" id="TFdate4" placeholder="dd/mm/yyyy" width="80%" value="" 
+										type="date" data-inline="true" /></div>
+				
+				<div class="ui-block-b"><label for="Flightid"> Flight ID: </label>
+				  <input name="TFflight" id="TFflight" width="50"
+										placeholder="Flight sheet no." value="" type="text" />
+				</div>
+				
+                <div class="ui-block-c"><label for="selectaircraft">
+											Aircraft: </label> <select name="aircraft" id="aircraft">
+											<option value="">CHOOSE</option>
+											<option value="HK-4784">HK-4784</option>
+											<option value="T34-855">T34-855</option>
+											<option value="T34-900">T34-900</option>
+											</select>
+											
+											</div>
+                                            
+                <div class="ui-block-d"></div>
+				<div class="ui-block-a">
+				  <label for="selectclient"> Client: </label><select  name="client" id="client">
+				 <option value="">CHOOSE</option>
+											<option value="Mega">Mega</option>
+											<option value="C.M.R">C.M.R</option>
+											<option value="Helicol">Helicol</option>
+											<option value="Helistar">Helistar</option>
+												<option value="Satena">Satena</option>
+							</select></div>
+				<div class="ui-block-b"><label for="selectbase"> Base: </label> <select name="base" id="base">
+								<option value="">CHOOSE</option>
+											<option value="Apartado">Apartado</option>
+											<option value="Santa Marta">Santa Marta</option>
+											<option value="Valle del Cauca">Valle del Cauca</option>
+							</select></div>
+				<div class="ui-block-c"><label for="selecttypefl">  Flight Type: </label> <select name="type" id="type">
+								<option value="">CHOOSE</option>
+											<option value="VUELOPRUEBA">VUELOPRUEBA</option>
+											
+							</select></div>
+                <div class="ui-block-d"></div>
+                </div>
+                <label for="lblcrew">
+                <h3>Crew</h3></label>
+                <div class="grid-ui-a">
+                	<div class="ui-block-a"><label for="selectpil"> Pilot: </label><select style="width: 60" name="pilot" id="pilot"  >
+				  <option value="">CHOOSE</option>
+											<option value="Carlos">Carlos</option>
+											
+							</select></div>
+							
+                 <div class="grid-ui-b"></div>
+				<div class="ui-block-a"><label for="selectcop"> CoPilot: </label><select style="width: 60" name="copilot" id="copilot"  >
+				 <option value="">CHOOSE</option>
+											<option value="Santiago">Santiago</option>
+											
+							</select></div>
+				<div class="grid-ui-b"></div>
+				</div>
+			
+                
+						<div data-role="fieldcontain">
+							<table width="99%" border="0">
+								<tr><td align="right" colspan="4">
+								<a data-role="button"
+										data-inline="true" onclick="save()"> New</a> <a
+										data-role="button" data-inline="true"  href="#page1">
+											Cancel</a>
+								</td></tr>
+								<tr>
+</form>
+
+  <div data-role="content">
+
+     <ul id="List">
+
+    </ul>
+
+
+<!-- Segunda parte-->
+
+<table width="100%" >
+							<tr bgcolor="#C0C0C0">
+							  <td colspan="2" align="center">&nbsp;</td>
+							  <td colspan="3" align="center">&nbsp;</td>
+							  <td colspan="3" align="center"><input type="submit" name="btnNew" id="btnNew" value="Agregar Vuelo" onclick="saveVuelo()"></td>
+							  <td colspan="2" align="center">
+						      <input type="submit" name="btnDelete" id="btnDelete" value="Eliminar Vuelo"></td>
+							  </tr>
+							<tr bgcolor="#C0C0C0">
+							<td colspan="2" align="center">Journey</td>
+							<td colspan="3" align="center">Platform Time</td>
+							<td colspan="3" align="center">Flight Time</td>
+							
+							<td colspan="2" align="center">Passengers/Load</td>
+							</tr>
+							<tr bgcolor="#C0C0C0">
+							<td  align="center">From</td>
+							<td  align="center">To</td>
+							<td align="center">Departure</td>
+							<td  align="center">Arrive</td>
+							<td  align="center"><p>Block Time</p></td>
+							<td  align="center">Departure</td>
+							<td  align="center">Arrive</td>
+                            
+							<td align="center">Flight Time</td>
+							
+							<td align="center">Pax</td>
+							<td align="center">Load</td>
+							
+							</tr>
+							<tr>
+							<td align="center"><select name="fromv" id="fromv" >
+								<option value="">CHOOSE</option>
+								<option value="option2">Client 2</option>
+							</select></td>
+							<td align="center"><select name="tov" id="tov"  >
+								<option value="">CHOOSE</option>
+								<option value="option2">Client 2</option>
+							</select></td>
+							<td align="center"><input
+										name="" id="pdeparture" placeholder="00:00" value="" 
+										type="time" data-inline="true" /></td>
+							<td align="center"><input
+										name="" id="parrive" placeholder="00:00"  value="" 
+										type="time"></td>
+							<td align="center"><input
+										name="" id="blocktime" placeholder="00:00"  value="" 
+										type="time"   /></td>
+							<td align="center"><input
+										name="fdeparture" id="fdeparture" placeholder="00:00" value="" 
+										type="time" data-inline="true" /></td>
+							<td align="center"><input type="time" name="farrive" id="farrive" width ="50" placeholder="00:00"></td>
+							<td align="center"><input
+										name="" id="flighttime" placeholder="00:00" width="50" value="" 
+										type="time"  /></td>
+							<td align="center"><input
+										name="pax" id="pax" placeholder="0" width="50" value="" 
+										type="number" data-inline="true" /></td>
+							<td align="center"><input
+										name="load" id="load" placeholder="0" width="50" value="" 
+										type="number" /></td>
+							<td align="center">&nbsp;</td>
+							
+							</tr>
+							
+							
+							</table>
+							<table width="100%"  >
+							<tr><td colspan="8">
+							Observaciones: <br>
+							<textarea style="width:100%" name="txtAnotaciones"   id="txtAnotaciones" ></textarea><br/></td></tr>
+							
+						  </table>
+						  
+						  <!-- Listas de vuelo -->
+						   <ul id="ListVuelo"></ul>
+</body>
+
+</html>

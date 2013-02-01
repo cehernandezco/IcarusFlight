@@ -8,7 +8,13 @@ function init(){
 	$.mobile.phonegapNavigationEnabled = "true";
 	$.mobile.page.prototype.options.backBtnText = "Back";
 	verifydb();
+	verifyscreen();
 	timer();
+}
+function verifyscreen(){
+	_width = screen.width;
+	_height = screen.height;
+	alert("la resolucion es de:"+_width+" x "+_height);	
 }
 function verifyUser()
 {

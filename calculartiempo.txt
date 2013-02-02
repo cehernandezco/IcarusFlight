@@ -1,4 +1,5 @@
 function calcular(v1,v2)
+
 {
 horas1=v1.split(":"); /*Mediante la función split separamos el string por ":" y lo convertimos en array. */ 
 horas2=v2.split(":");
